@@ -1,0 +1,18 @@
+{
+  "name": "anikets.github.io",
+  "description": "Aniket Suryavanshi's work",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anikets/anikets.github.io"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5"
+  },
+  "scripts": {
+    "prepublish": "coffee -o lib/ -c src/waza.coffee",
+    "grunt-contrib-jshint": "~0.10.0",
+    "grunt-contrib-nodeunit": "~0.3.3",
+    "grunt-contrib-uglify": "~0.4.0"
+  }
+}
