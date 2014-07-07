@@ -8,8 +8,8 @@ module.exports = function(grunt) {
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       build: {
-        src: 'src/<%= pkg.name %>.js',
-        dest: 'build/<%= pkg.name %>.min.js'
+        src: 'assets/<%= pkg.name %>.js',
+        dest: 'assets/<%= pkg.name %>.min.js'
       }
     },
 
@@ -20,12 +20,12 @@ module.exports = function(grunt) {
           collapseWhitespace: true
         },
         files: {                                   // Dictionary of files
-          'index.html': 'src/index.html'           // 'destination': 'source'
+          'index.html': 'src/index-dev.html'       // 'destination': 'source'
         }
       },
       dev: {                                       // Another target
         files: {
-          'index.html': 'src/index.html'
+          'index.html': 'index-dev.html'
         }
       }
     }
