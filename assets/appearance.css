@@ -1,9 +1,49 @@
 body {
-  font-family: 'Bangers', cursive;
+  font-family: 'Bangers', 'Avenir Next', cursive;
   text-align: center;
+  background-color: #241844;
+  font-size: 30px;
+}
+
+.backgroundclip .text-with-image {
+  color: #222;  /* Fallback: assume this color ON TOP of image */
+  background: url(desert-suv.JPG) no-repeat;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-attachment: fixed;
 }
 
 h1 {
-  font-size: 3rem;
-  line-height: 4rem;
+  font-weight: 300;
+}
+
+h1 > small {
+  display: block;
+}
+
+nav > a {
+  color: #eee;
+  display: inline-block;
+  position: relative;
+  padding: 5px;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+nav > a::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 30%;
+  width: 100%;
+  height: 2px;
+  width: 20%;
+  margin: auto;
+  background: transparent;
+  -webkit-transition: all 0.2s cubic-bezier(0.5, -0.5, 0.5, 1.5);
+}
+nav > a:hover::before {
+  background: #fff;
+  left: 0;
+  width: 100%;
 }

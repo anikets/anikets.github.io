@@ -8,8 +8,11 @@ module.exports = function(grunt) {
         banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
       },
       build: {
-        src: 'assets/<%= pkg.name %>.js',
-        dest: 'assets/<%= pkg.name %>.min.js'
+        files: {
+          'assets/<%= pkg.name %>.min.js': 'assets/<%= pkg.name %>.js',
+          'assets/modernizr.min.js': 'bower_components/modernizr/modernizr.js',
+          'assets/jquery.fittext.min.js': 'assets/jquery.fittext.js'
+        }
       }
     },
 
@@ -20,7 +23,7 @@ module.exports = function(grunt) {
           collapseWhitespace: true
         },
         files: {                                   // Dictionary of files
-          'index.html': 'src/index-dev.html'       // 'destination': 'source'
+          'index.html': 'index-dev.html'       // 'destination': 'source'
         }
       },
       dev: {                                       // Another target
@@ -28,7 +31,22 @@ module.exports = function(grunt) {
           'index.html': 'index-dev.html'
         }
       }
-    }
+    },
+
+    concat: {
+      options: {
+        separator: ';',
+      },
+      dist: {
+        src: [
+            'bower_components/jquery/dist/jquery.min.js',
+            'assets/modernizr.min.js',
+            'assets/jquery.fittext.min.js',
+            'assets/<%= pkg.name %>.min.js'
+          ],
+        dest: 'assets/behaviour.min.js',
+      },
+    },
   });
 
 
@@ -36,10 +54,11 @@ module.exports = function(grunt) {
   // Load the plugin tasks.
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-htmlmin');
+  grunt.loadNpmTasks('grunt-contrib-concat');
 
 
 
   // Default task(s).
-  grunt.registerTask('default', ['uglify', 'htmlmin']);
+  grunt.registerTask('default', ['uglify', 'htmlmin', 'concat']);
 
 };
