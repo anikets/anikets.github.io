@@ -43,18 +43,18 @@ nav > a:hover::before {
 
 @media ( max-width: 600px ) {
   body {
-    background-image: linear-gradient( rgba( 0, 0, 255, 0.3 ), rgba( 0, 0, 255, 0 )), url( 'sea-s.JPG' );
+    background-image: linear-gradient( rgba( 0, 0, 255, 0.3 ), rgba( 0, 0, 255, 0 )), url( 'sea-s.jpg' );
   }
 }
 
 @media ( min-width: 601px ) and ( max-width: 1400px ) {
   body {
-    background-image: linear-gradient( rgba( 0, 0, 255, 0.3 ), rgba( 0, 0, 255, 0 )), url( 'sea.JPG' );
+    background-image: linear-gradient( rgba( 0, 0, 255, 0.3 ), rgba( 0, 0, 255, 0 )), url( 'sea.jpg' );
   }
 }
 
 @media ( min-width: 1401px ) {
   body {
-    background-image: linear-gradient( rgba( 0, 0, 255, 0.3 ), rgba( 0, 0, 255, 0 )), url( 'sea-l.JPG' );
+    background-image: linear-gradient( rgba( 0, 0, 255, 0.3 ), rgba( 0, 0, 255, 0 )), url( 'sea-l.jpg' );
   }
 }
