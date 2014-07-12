@@ -10,7 +10,6 @@ module.exports = function(grunt) {
       build: {
         files: {
           'assets/<%= pkg.name %>.min.js': 'assets/<%= pkg.name %>.js',
-          'assets/modernizr.min.js': 'bower_components/modernizr/modernizr.js',
           'assets/jquery.fittext.min.js': 'assets/jquery.fittext.js'
         }
       }
@@ -40,7 +39,6 @@ module.exports = function(grunt) {
       dist: {
         src: [
             'bower_components/jquery/dist/jquery.min.js',
-            'assets/modernizr.min.js',
             'assets/jquery.fittext.min.js',
             'assets/<%= pkg.name %>.min.js'
           ],
