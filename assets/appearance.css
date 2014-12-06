@@ -5,6 +5,7 @@ body {
   font-size: 30px;
   color: #fff;
   background-repeat: no-repeat;
+  background-size: cover;
 }
 
 a {
