@@ -1,0 +1,71 @@
+<html !doctype>
+
+  <head>
+    <title>Countdown to Your Favourite Event</title>
+    <link href='http://fonts.googleapis.com/css?family=Short+Stack' rel='stylesheet' type='text/css'>
+    <style type='text/css'>
+      body {
+        font-family: 'Short Stack', cursive;  
+        background: #EA2E49;
+        color: #DAEDE2;
+        text-align: center;
+      }
+      h1 {
+        padding-top: 100px;
+      }
+      h2 span {
+        color: #F6F792;
+        font-size: 40px;
+      }
+      @media ( max-width: 500px ) {
+        h1 { padding-top: 30px; }
+        .days, .hours, .minutes, .seconds { display: block; }
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Time Left:</h1>
+    <h2 id='days-rem'>
+      <span class='days'></span> days,
+      <span class='hours'></span> hours,
+      <span class='minutes'></span> minutes,
+      <span class='seconds'></span> seconds.
+    </h2>
+
+
+    <script src='assets/moment.min.js'></script>
+    <script>
+      window.onload = function() {
+        endDate = moment( '2015-02-10 11:00' );
+        now = moment();
+        difference = endDate.diff( now, 'days' );
+        d = moment( difference );
+        el = document.getElementById( 'days-rem' );
+        dEl = document.getElementsByClassName( 'days' )[ 0 ];
+        hEl = document.getElementsByClassName( 'hours' )[ 0 ];
+        mEl = document.getElementsByClassName( 'minutes' )[ 0 ];
+        sEl = document.getElementsByClassName( 'seconds' )[ 0 ];
+        //hours;
+        findDiff = function() {
+          now = moment();
+          //difference = endDate.diff( now, 'days' );
+          days = difference = endDate.diff( now, 'days' );
+          hd = moment.duration( endDate.diff( now, 'hours' ) );
+          foo = Math.floor( moment.duration( endDate.diff( now, 'days' ) * 24 ));
+          hours = hd - foo;
+          seconds = endDate.diff( now, 'seconds' ) % ( 60 );
+          minutes = endDate.diff( now, 'minutes' ) % ( 60 )
+
+          dEl.innerText = days;
+          hEl.innerText = hours;
+          mEl.innerText = minutes;
+          sEl.innerText = seconds;
+        };
+        findDiff();
+
+        setInterval( findDiff, 1000 );
+      };
+    </script>
+  </body>
+</html>
