@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordlers — Group Stats</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --card: #1a1a2e;
+    --card2: #16213e;
+    --accent1: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --text: #f0f0f0;
+    --muted: #9999b3;
+    --aniket: #6c63ff;
+    --jag: #ff6584;
+    --unmesh: #43e97b;
+    --border: #2a2a4a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  h1 {
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  /* Player legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Big number cards */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .stat-card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .stat-num {
+    font-size: 1.8rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Bar chart */
+  .bar-group { margin-bottom: 10px; }
+  .bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    margin-bottom: 4px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .bar-track {
+    background: var(--border);
+    border-radius: 6px;
+    height: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 6px;
+    transition: width 0.6s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: rgba(0,0,0,0.7);
+  }
+
+  /* Grouped bar */
+  .grouped-bars .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 7px;
+  }
+  .grouped-bars .row-label {
+    font-size: 0.72rem;
+    color: var(--muted);
+    width: 70px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .grouped-bars .mini-bars {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .mini-bar {
+    height: 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    padding-left: 6px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: rgba(0,0,0,0.75);
+    min-width: 20px;
+  }
+
+  /* Score distribution dots */
+  .dist-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .dist-name {
+    width: 80px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .dist-blocks {
+    display: flex;
+    gap: 3px;
+    flex-wrap: wrap;
+  }
+  .dist-block {
+    width: 18px; height: 18px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.55rem;
+    font-weight: 800;
+    color: rgba(0,0,0,0.75);
+  }
+  .dist-avg {
+    margin-left: auto;
+    font-size: 0.7rem;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  /* Waffle stars */
+  .waffle-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .waffle-name {
+    width: 80px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .star-bar {
+    flex: 1;
+    height: 22px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .star-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: rgba(0,0,0,0.75);
+  }
+  .star-val {
+    margin-left: auto;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text);
+    flex-shrink: 0;
+  }
+
+  /* Time chart */
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .time-name {
+    width: 80px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .time-segments {
+    flex: 1;
+    height: 22px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+  }
+  .time-seg {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: rgba(0,0,0,0.75);
+    min-width: 0;
+  }
+  .time-peak {
+    font-size: 0.68rem;
+    color: var(--muted);
+    width: 44px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Awards */
+  .awards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .award-item {
+    background: var(--card2);
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid var(--border);
+  }
+  .award-emoji { font-size: 1.3rem; display: block; margin-bottom: 4px; }
+  .award-title { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .award-winner { font-size: 0.8rem; font-weight: 700; margin-top: 2px; }
+
+  /* Streak badge */
+  .streak-row {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 8px;
+  }
+  .streak-badge {
+    text-align: center;
+  }
+  .streak-num {
+    font-size: 2rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .streak-sub {
+    font-size: 0.6rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.65rem;
+    margin-top: 20px;
+    padding-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Wordlers</h1>
+<p class="subtitle">24 Apr – 9 Jun 2026 · 47 days · 431 posts</p>
+
+<!-- Legend -->
+<div class="legend">
+  <div class="legend-item"><div class="dot" style="background:var(--aniket)"></div>Aniket</div>
+  <div class="legend-item"><div class="dot" style="background:var(--jag)"></div>Jagannathan</div>
+  <div class="legend-item"><div class="dot" style="background:var(--unmesh)"></div>Unmesh</div>
+</div>
+
+<!-- Top stats -->
+<div class="stat-row">
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--aniket)">135</div>
+    <div class="stat-label">Aniket</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--jag)">138</div>
+    <div class="stat-label">Jagannathan</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" style="color:var(--unmesh)">158</div>
+    <div class="stat-label">Unmesh</div>
+  </div>
+</div>
+
+<!-- Attendance streaks -->
+<div class="card">
+  <div class="card-title">🔥 Attendance Streak (days)</div>
+  <div class="streak-row">
+    <div class="streak-badge">
+      <div class="streak-num" style="color:var(--aniket)">47</div>
+      <div class="streak-sub">Aniket</div>
+      <div style="font-size:0.6rem;color:#43e97b;margin-top:2px;">✓ Perfect</div>
+    </div>
+    <div class="streak-badge">
+      <div class="streak-num" style="color:var(--jag)">37</div>
+      <div class="streak-sub">Jagannathan</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">44/47 days</div>
+    </div>
+    <div class="streak-badge">
+      <div class="streak-num" style="color:var(--unmesh)">47</div>
+      <div class="streak-sub">Unmesh</div>
+      <div style="font-size:0.6rem;color:#43e97b;margin-top:2px;">✓ Perfect</div>
+    </div>
+  </div>
+</div>
+
+<!-- Game participation -->
+<div class="card">
+  <div class="card-title">📊 Game Participation</div>
+  <div class="grouped-bars">
+
+    <div class="bar-row">
+      <div class="row-label">Wordle</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:95.7%;background:var(--aniket)">45</div>
+        <div class="mini-bar" style="width:93.6%;background:var(--jag)">44</div>
+        <div class="mini-bar" style="width:100%;background:var(--unmesh)">47</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="row-label">Strands</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:89.4%;background:var(--aniket)">42</div>
+        <div class="mini-bar" style="width:80.9%;background:var(--jag)">38</div>
+        <div class="mini-bar" style="width:100%;background:var(--unmesh)">47</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="row-label">Waffle</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:93.6%;background:var(--aniket)">44</div>
+        <div class="mini-bar" style="width:93.6%;background:var(--jag)">44</div>
+        <div class="mini-bar" style="width:100%;background:var(--unmesh)">47</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="row-label">Connections</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:23.5%;background:var(--aniket)">4</div>
+        <div class="mini-bar" style="width:70.6%;background:var(--jag)">12</div>
+        <div class="mini-bar" style="width:100%;background:var(--unmesh)">17</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Wordle scores -->
+<div class="card">
+  <div class="card-title">🟩 Wordle Score Distribution</div>
+
+  <!-- Aniket -->
+  <div class="dist-row">
+    <div class="dist-name" style="color:var(--aniket)">Aniket</div>
+    <div class="dist-blocks">
+      <!-- 3/6: 9 -->
+      <div class="dist-block" style="background:#43e97b;" title="3/6 × 9">3×9</div>
+      <!-- 4/6: 20 -->
+      <div class="dist-block" style="background:#a8e063;width:26px;" title="4/6 × 20">4×20</div>
+      <!-- 5/6: 12 -->
+      <div class="dist-block" style="background:#f9ca24;" title="5/6 × 12">5×12</div>
+      <!-- 6/6: 2 -->
+      <div class="dist-block" style="background:#f0932b;" title="6/6 × 2">6×2</div>
+      <!-- X: 2 -->
+      <div class="dist-block" style="background:#eb4d4b;" title="Failed × 2">✗×2</div>
+    </div>
+    <div class="dist-avg">avg 4.16</div>
+  </div>
+
+  <!-- Jagannathan -->
+  <div class="dist-row">
+    <div class="dist-name" style="color:var(--jag)">Jagannathan</div>
+    <div class="dist-blocks">
+      <!-- 2/6: 2 -->
+      <div class="dist-block" style="background:#00d2d3;" title="2/6 × 2">2×2</div>
+      <!-- 3/6: 12 -->
+      <div class="dist-block" style="background:#43e97b;" title="3/6 × 12">3×12</div>
+      <!-- 4/6: 19 -->
+      <div class="dist-block" style="background:#a8e063;width:26px;" title="4/6 × 19">4×19</div>
+      <!-- 5/6: 9 -->
+      <div class="dist-block" style="background:#f9ca24;" title="5/6 × 9">5×9</div>
+      <!-- 6/6: 2 -->
+      <div class="dist-block" style="background:#f0932b;" title="6/6 × 2">6×2</div>
+    </div>
+    <div class="dist-avg" style="color:#ff6584;font-weight:700;">avg 3.93 🏆</div>
+  </div>
+
+  <!-- Unmesh -->
+  <div class="dist-row">
+    <div class="dist-name" style="color:var(--unmesh)">Unmesh</div>
+    <div class="dist-blocks">
+      <!-- 3/6: 13 -->
+      <div class="dist-block" style="background:#43e97b;" title="3/6 × 13">3×13</div>
+      <!-- 4/6: 20 -->
+      <div class="dist-block" style="background:#a8e063;width:26px;" title="4/6 × 20">4×20</div>
+      <!-- 5/6: 10 -->
+      <div class="dist-block" style="background:#f9ca24;" title="5/6 × 10">5×10</div>
+      <!-- 6/6: 4 -->
+      <div class="dist-block" style="background:#f0932b;" title="6/6 × 4">6×4</div>
+    </div>
+    <div class="dist-avg">avg 4.11</div>
+  </div>
+
+  <div style="font-size:0.62rem;color:var(--muted);margin-top:8px;">Block size ∝ count. ✗ = failed (X/6). Only Aniket has fails.</div>
+</div>
+
+<!-- Waffle -->
+<div class="card">
+  <div class="card-title">🧇 Waffle Avg Score (out of 5 stars)</div>
+
+  <div class="waffle-row">
+    <div class="waffle-name" style="color:var(--aniket)">Aniket</div>
+    <div class="star-bar">
+      <div class="star-fill" style="width:86.8%;background:linear-gradient(90deg,#6c63ff,#9b8fe8);">4.34 / 5</div>
+    </div>
+    <div class="star-val">4.34 ⭐</div>
+  </div>
+
+  <div class="waffle-row">
+    <div class="waffle-name" style="color:var(--jag)">Jagannathan</div>
+    <div class="star-bar">
+      <div class="star-fill" style="width:95.4%;background:linear-gradient(90deg,#ff6584,#ffb8c6);">4.77 / 5</div>
+    </div>
+    <div class="star-val" style="color:#ff6584;font-weight:700;">4.77 🏆</div>
+  </div>
+
+  <div class="waffle-row">
+    <div class="waffle-name" style="color:var(--unmesh)">Unmesh</div>
+    <div class="star-bar">
+      <div class="star-fill" style="width:68%;background:linear-gradient(90deg,#43e97b,#86e8ac);">3.40 / 5</div>
+    </div>
+    <div class="star-val">3.40 ⭐</div>
+  </div>
+</div>
+
+<!-- Strands hints -->
+<div class="card">
+  <div class="card-title">🧶 Strands — Hint-Free %</div>
+
+  <div class="bar-group">
+    <div class="bar-label"><span style="color:var(--aniket)">Aniket</span><span>92%</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:92%;background:var(--aniket);">92%</div></div>
+  </div>
+  <div class="bar-group">
+    <div class="bar-label"><span style="color:var(--jag)">Jagannathan</span><span style="color:#ff6584;font-weight:700;">100% 🏆</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:100%;background:var(--jag);">100% — never used a hint</div></div>
+  </div>
+  <div class="bar-group">
+    <div class="bar-label"><span style="color:var(--unmesh)">Unmesh</span><span>93%</span></div>
+    <div class="bar-track"><div class="bar-fill" style="width:93%;background:var(--unmesh);">93%</div></div>
+  </div>
+</div>
+
+<!-- Who posts first -->
+<div class="card">
+  <div class="card-title">⚡ Who Posts First? (%)</div>
+  <div class="grouped-bars">
+
+    <div class="bar-row">
+      <div class="row-label">Wordle</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:14%;background:var(--aniket)">14%</div>
+        <div class="mini-bar" style="width:44%;background:var(--jag)">44%</div>
+        <div class="mini-bar" style="width:40%;background:var(--unmesh)">40%</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="row-label">Strands</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:12%;background:var(--aniket)">12%</div>
+        <div class="mini-bar" style="width:25%;background:var(--jag)">25%</div>
+        <div class="mini-bar" style="width:61%;background:var(--unmesh)">61%</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="row-label">Waffle</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:10%;background:var(--aniket)">10%</div>
+        <div class="mini-bar" style="width:40%;background:var(--jag)">40%</div>
+        <div class="mini-bar" style="width:48%;background:var(--unmesh)">48%</div>
+      </div>
+    </div>
+
+    <div class="bar-row">
+      <div class="row-label">Connections</div>
+      <div class="mini-bars">
+        <div class="mini-bar" style="width:12%;background:var(--aniket)">12%</div>
+        <div class="mini-bar" style="width:29%;background:var(--jag)">29%</div>
+        <div class="mini-bar" style="width:58%;background:var(--unmesh)">58%</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Posting time -->
+<div class="card">
+  <div class="card-title">🕐 When Do They Play?</div>
+
+  <div class="time-row">
+    <div class="time-name" style="color:var(--aniket)">Aniket</div>
+    <div class="time-segments">
+      <div class="time-seg" style="width:54%;background:var(--aniket);opacity:0.9;">54% morn</div>
+      <div class="time-seg" style="width:44%;background:var(--aniket);opacity:0.5;">44% aftn</div>
+    </div>
+    <div class="time-peak">11am</div>
+  </div>
+
+  <div class="time-row">
+    <div class="time-name" style="color:var(--jag)">Jagannathan</div>
+    <div class="time-segments">
+      <div class="time-seg" style="width:89%;background:var(--jag);opacity:0.9;">89% morn</div>
+      <div class="time-seg" style="width:10%;background:var(--jag);opacity:0.5;">10%</div>
+    </div>
+    <div class="time-peak">8am</div>
+  </div>
+
+  <div class="time-row">
+    <div class="time-name" style="color:var(--unmesh)">Unmesh</div>
+    <div class="time-segments">
+      <div class="time-seg" style="width:97%;background:var(--unmesh);opacity:0.9;">97% morning</div>
+      <div class="time-seg" style="width:2%;background:var(--unmesh);opacity:0.5;"></div>
+    </div>
+    <div class="time-peak">7am ⚡</div>
+  </div>
+
+  <div style="font-size:0.62rem;color:var(--muted);margin-top:8px;">Morning = 5am–12pm · Afternoon = 12pm–6pm</div>
+</div>
+
+<!-- Awards -->
+<div class="card">
+  <div class="card-title">🏅 Awards</div>
+  <div class="awards-grid">
+    <div class="award-item">
+      <span class="award-emoji">🏆</span>
+      <div class="award-title">Wordle King</div>
+      <div class="award-winner" style="color:var(--jag)">Jagannathan</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">avg 3.93, zero fails</div>
+    </div>
+    <div class="award-item">
+      <span class="award-emoji">🧇</span>
+      <div class="award-title">Waffle Master</div>
+      <div class="award-winner" style="color:var(--jag)">Jagannathan</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">4.77/5 avg, 80% perfect</div>
+    </div>
+    <div class="award-item">
+      <span class="award-emoji">🧶</span>
+      <div class="award-title">Strands Purist</div>
+      <div class="award-winner" style="color:var(--jag)">Jagannathan</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">100% hint-free</div>
+    </div>
+    <div class="award-item">
+      <span class="award-emoji">🔥</span>
+      <div class="award-title">Iron Man</div>
+      <div class="award-winner" style="color:var(--aniket)">Aniket</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">+ Unmesh · 47/47 days</div>
+    </div>
+    <div class="award-item">
+      <span class="award-emoji">⚡</span>
+      <div class="award-title">Early Bird</div>
+      <div class="award-winner" style="color:var(--unmesh)">Unmesh</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">First to post, 7am peak</div>
+    </div>
+    <div class="award-item">
+      <span class="award-emoji">🎯</span>
+      <div class="award-title">Most Engaged</div>
+      <div class="award-winner" style="color:var(--unmesh)">Unmesh</div>
+      <div style="font-size:0.6rem;color:var(--muted);margin-top:2px;">158 posts, never skipped</div>
+    </div>
+  </div>
+</div>
+
+<footer>Wordlers · Apr 24 – Jun 9, 2026 · Built with 💜</footer>
+
+</body>
+</html>
