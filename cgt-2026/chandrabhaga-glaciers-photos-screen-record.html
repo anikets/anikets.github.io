@@ -93,16 +93,16 @@ const PRE_EACH = 1.6;
    route, its caption, an optional square crop, and a playback rate if a
    slow-motion file comes through at full speed.                              */
 const CLIPS = [
-  { id:'river',   label:'River waves', file:'slow-mo of the Bhaga',
+  { id:'river',   label:'River waves', file:'slow-mo of the Bhaga', src:'river-waves.mp4',
     start:0,  end:4,  place:{slot:'pre'},
     cap:'The Bhaga, running hard', sub:'' },
-  { id:'drive',   label:'The drive', file:'drive along the river',
-    start:32, end:51, place:{slot:'pre'},
+  { id:'drive',   label:'The drive', file:'drive along the river', src:'the-drive.mp4',
+    start:0, end:19, place:{slot:'pre'},
     cap:'Drive along the river bed', sub:'' },
-  { id:'pushups', label:'Pushups', file:'pushups by the lake',
+  { id:'pushups', label:'Pushups', file:'pushups by the lake', src:'pushups.mp4',
     start:0,  end:6,  place:{slot:'route', idx:1083},
     cap:'Pushups at 5,100 m', sub:'' },
-  { id:'snow',    label:'Snow throw', file:'snow throw at the lake',
+  { id:'snow',    label:'Snow throw', file:'snow throw at the lake', src:'snow-throw.mp4',
     start:5,  end:8,  place:{slot:'route', idx:1087}, crop:'square',
     cap:'Snow, thrown', sub:'' }
 ];
@@ -616,7 +616,6 @@ let fadeFrom = null, fadeTo = null, fadeAt = -99, fadeA = 1;
 function pickPhoto(t){
   const S = SCHED;
   if (S.preAt.length && t < S.preT){
-    if (t < 1.2) return null;
     let sel = S.preAt[0];
     for (const a of S.preAt) if (t >= a.start) sel = a;
     return Object.assign({}, sel.it, {start:sel.start});
@@ -703,7 +702,7 @@ function photoPanel(t){
   } else if (sel) {
     fadeTo = sel;                       // keep the fresh start time
   }
-  fadeA = playing ? ease((t - fadeAt)/0.45) : 1;
+  fadeA = (playing && fadeFrom) ? ease((t - fadeAt)/0.45) : 1;
   if (fadeFrom && fadeA < 1) drawPhoto(fadeFrom, 1-fadeA, t);
   drawPhoto(fadeTo, fadeA, t);
   runClips(t, fadeTo);
@@ -945,27 +944,44 @@ function buildClipButtons(){
     const inp = document.createElement('input');
     inp.type = 'file'; inp.accept = 'video/*'; inp.hidden = true;
     btn.onclick = ()=> inp.click();
+    const attach = (v)=>{
+      if (isFinite(v.duration)) c.end = Math.min(c.end, v.duration);
+      CLIPV.get(c.id).video = v;
+      CLIPV.get(c.id).ready = true;
+      btn.setAttribute('aria-pressed','true');
+      btn.textContent = c.label + ' ✓';
+      stop(); buildSchedule(+durSel.value); cur = 0; draw(0);
+      statusEl.textContent = c.label + ' attached — ' + (c.end-c.start).toFixed(1) + ' s in use.';
+    };
     inp.onchange = ()=>{
       const f = inp.files && inp.files[0];
       if (!f) return;
       const v = document.createElement('video');
       v.muted = true; v.playsInline = true; v.preload = 'auto';
       v.src = URL.createObjectURL(f);
-      v.onloadedmetadata = ()=>{
-        if (isFinite(v.duration)) c.end = Math.min(c.end, v.duration);
-        CLIPV.get(c.id).video = v;
-        CLIPV.get(c.id).ready = true;
-        btn.setAttribute('aria-pressed','true');
-        btn.textContent = c.label + ' ✓';
-        stop(); buildSchedule(+durSel.value); cur = 0; draw(0);
-        statusEl.textContent = c.label + ' attached — ' + (c.end-c.start).toFixed(1) + ' s in use.';
-      };
+      v.onloadedmetadata = ()=> attach(v);
       v.onerror = ()=>{
         statusEl.textContent = c.label + ' would not decode. Convert it to H.264 MP4 and try again.';
       };
       v.load();
     };
     wrap.appendChild(btn); wrap.appendChild(inp);
+    // auto-attach the bundled clip file next to this HTML file, so it doesn't
+    // have to be picked by hand every time the page loads. The manual button
+    // above still works as an override if this file is missing or wrong.
+    if (c.src){
+      const v = document.createElement('video');
+      v.muted = true; v.playsInline = true; v.preload = 'auto';
+      // root it in the DOM and in CLIPV right away — a detached, unreferenced
+      // <video> can silently fail to ever start loading in some browsers.
+      v.style.position='absolute'; v.style.width='1px'; v.style.height='1px'; v.style.opacity='0';
+      document.body.appendChild(v);
+      CLIPV.get(c.id).video = v;
+      v.onloadedmetadata = ()=> attach(v);
+      v.onerror = ()=>{}; // file not exported next to this page yet — leave the manual button
+      v.src = c.src;
+      v.load();
+    }
   }
 }
 function boot(){ setSize(); buildClipButtons(); loadPix(()=>{ setSize(); draw(0); }); }
