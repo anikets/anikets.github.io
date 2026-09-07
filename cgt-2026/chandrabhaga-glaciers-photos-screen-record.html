@@ -61,6 +61,8 @@
     <button id="safe" aria-pressed="false">Safe area</button>
     <div class="sep"></div>
     <button id="export">Save video</button>
+    <button id="exportIg">Export for Instagram</button>
+    <button id="exportTw">Export for Twitter</button>
     <span id="status"></span>
     <span class="hint">Space plays and pauses · Esc brings the controls back · F11 for full screen before you record</span>
   </div>
@@ -805,6 +807,17 @@ function endLine(a){
 
 /* ------------------------------------------------------------------ frames */
 let showSafe=false;
+let WATERMARK=null;
+function watermark(){
+  if (!WATERMARK) return;
+  ctx.save();
+  ctx.textAlign='right';
+  ctx.font=`500 26px ${MONO}`;
+  ctx.fillStyle=hexa(SNOW,.55);
+  ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=6;
+  ctx.fillText(WATERMARK, L.photo.x+L.photo.w-16, L.photo.y+L.photo.h-16);
+  ctx.restore();
+}
 function draw(t){
   const {tIn,tOut,end} = SCHED;
   ctx.clearRect(0,0,W,H);
@@ -837,6 +850,7 @@ function draw(t){
   ctx.font=`400 24px ${MONO}`; ctx.fillStyle=hexa(SNOW,.6);
   tracked('PHOTOS AND TIMES MY OWN · ROUTE APPROXIMATE', L.foot.x, L.foot.y, 2,'left');
 
+  watermark();
   if (showSafe) safeGuides();
 }
 
@@ -867,6 +881,7 @@ function stop(){
 const playBtn=document.getElementById('play'), durSel=document.getElementById('dur');
 const ratioSel=document.getElementById('ratio'), zoomBtn=document.getElementById('zoom');
 const safeBtn=document.getElementById('safe'), exportBtn=document.getElementById('export');
+const exportIgBtn=document.getElementById('exportIg'), exportTwBtn=document.getElementById('exportTw');
 const restartBtn=document.getElementById('restart'), statusEl=document.getElementById('status');
 const stage=document.getElementById('stage'), wrapEl=document.getElementById('stagewrap');
 
@@ -897,20 +912,23 @@ function fit(){
 window.addEventListener('resize', fit);
 
 /* ------------------------------------------------------------ video export */
-exportBtn.onclick = ()=>{
+function recordVideo(filename, watermarkText){
   if(!cv.captureStream || !window.MediaRecorder){
     statusEl.textContent='This browser can\u2019t save video. Screen record instead.'; return;
   }
   const mime=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']
     .find(m=>MediaRecorder.isTypeSupported(m));
   if(!mime){ statusEl.textContent='This browser can\u2019t save video. Screen record instead.'; return; }
+  WATERMARK = watermarkText || null;
   const chunks=[];
   const rec=new MediaRecorder(cv.captureStream(60),{mimeType:mime,videoBitsPerSecond:14000000});
   rec.ondataavailable=e=>{ if(e.data.size) chunks.push(e.data); };
   rec.onstop=()=>{
+    WATERMARK = null;
+    if (!playing) draw(cur);
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob(chunks,{type:'video/webm'}));
-    a.download='chandrabhaga-glaciers-'+ratioSel.value+'.webm';
+    a.download=filename+'.webm';
     a.click();
     statusEl.textContent='Saved as WebM. Convert to MP4 before posting.';
     setTimeout(()=>statusEl.textContent='',10000);
@@ -921,7 +939,16 @@ exportBtn.onclick = ()=>{
   const watch=setInterval(()=>{
     if(!playing){ clearInterval(watch); setTimeout(()=>rec.stop(),350); }
   },200);
-};
+}
+exportBtn.onclick = ()=> recordVideo('chandrabhaga-glaciers-'+ratioSel.value, null);
+function exportForPlatform(platform, handle){
+  // both platforms use the same 9:16 vertical frame today — only the
+  // watermark and filename differ.
+  if (ratioSel.value !== '1080x1920'){ ratioSel.value = '1080x1920'; ratioSel.onchange(); }
+  recordVideo('chandrabhaga-glaciers-'+platform, handle);
+}
+exportIgBtn.onclick = ()=> exportForPlatform('instagram', '@aniketsur');
+exportTwBtn.onclick = ()=> exportForPlatform('twitter', '@44Sur');
 
 /* -------------------------------------------------------------------- boot */
 function loadPix(done){
