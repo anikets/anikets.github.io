@@ -6,7 +6,7 @@
 <title>Chandrabhaga Glaciers · route animation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *{box-sizing:border-box}
   html,body{margin:0;height:100%;background:#05090D;color:#EAF2F5;
@@ -308,13 +308,13 @@ function background(){
 function header(a, dayIdx, chipT, prog, pre, post){
   const h=L.head, big = L.reel ? 92 : 78;
   ctx.textAlign='left';
-  ctx.font=`500 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.9*a);
+  ctx.font=`700 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.9*a);
   tracked('LAHAUL · HIMACHAL PRADESH', h.x, h.y+16, 5,'left');
-  ctx.font=`700 ${big}px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,a);
+  ctx.font=`900 ${big}px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,a);
   tracked('CHANDRABHAGA', h.x, h.y+16+big*1.05, 1,'left');
-  ctx.font=`400 ${big}px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,.6*a);
+  ctx.font=`600 ${big}px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,.6*a);
   const w1 = tracked('GLACIERS', h.x, h.y+16+big*1.98, 1,'left');
-  ctx.font=`500 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.85*a);
+  ctx.font=`700 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.85*a);
   tracked('AUGUST 2026', h.x+w1+24, h.y+16+big*1.98-4, 3,'left');
 
   const ruleY = h.y + h.h - 62;
@@ -325,11 +325,11 @@ function header(a, dayIdx, chipT, prog, pre, post){
   ctx.globalAlpha = e*a;
   ctx.fillStyle = pre ? hexa(MIST,.8) : COL[dayIdx];
   ctx.fillRect(h.x, ruleY+24+rise, 38, 4);
-  ctx.font=`600 40px ${DISPLAY}`; ctx.fillStyle=SNOW;
+  ctx.font=`800 40px ${DISPLAY}`; ctx.fillStyle=SNOW;
   const label = pre ? 'GETTING THERE' : (post ? 'WALKING OUT' : D.days[dayIdx].label.toUpperCase());
   const sub   = pre ? 'DARCHA · 2–3 AUG' : (post ? '7 AUG' : D.days[dayIdx].date.toUpperCase());
   const dw = tracked(label, h.x+56, ruleY+40+rise, 3,'left');
-  ctx.font=`400 22px ${MONO}`; ctx.fillStyle=MIST;
+  ctx.font=`600 22px ${MONO}`; ctx.fillStyle=MIST;
   tracked(sub, h.x+56+dw+20, ruleY+38+rise, 2,'left');
   ctx.globalAlpha=1;
   // right side of the rule: how far through the walk we are
@@ -337,7 +337,7 @@ function header(a, dayIdx, chipT, prog, pre, post){
   ctx.fillStyle=hexa(MIST,.18*a); ctx.fillRect(bx,by,bw,3);
   ctx.fillStyle=hexa(COL[dayIdx],a); ctx.fillRect(bx,by,bw*clamp(prog,0,1),3);
   ctx.textAlign='right';
-  ctx.font=`400 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.8*a);
+  ctx.font=`600 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.8*a);
   tracked(Math.round(prog*100)+'% OF THE ROUTE', h.x+h.w, by-14, 2,'right');
   ctx.textAlign='left';
 }
@@ -348,7 +348,7 @@ function mapFurniture(a){
   for(const [x,y,sx,sy] of [[m.x,m.y,1,1],[m.x+m.w,m.y,-1,1],[m.x,m.y+m.h,1,-1],[m.x+m.w,m.y+m.h,-1,-1]]){
     ctx.beginPath(); ctx.moveTo(x+sx*len,y); ctx.lineTo(x,y); ctx.lineTo(x,y+sy*len); ctx.stroke();
   }
-  ctx.font=`400 17px ${MONO}`; ctx.fillStyle=hexa(MIST,.5*a); ctx.textAlign='left';
+  ctx.font=`600 17px ${MONO}`; ctx.fillStyle=hexa(MIST,.5*a); ctx.textAlign='left';
   tracked('32.7°N  77.4°E', m.x, m.y-14, 1.5,'left');
 
   ctx.textAlign='center';
@@ -357,7 +357,7 @@ function mapFurniture(a){
   ctx.beginPath(); ctx.moveTo(bx,by); ctx.lineTo(bx+px,by);
   ctx.moveTo(bx,by-6); ctx.lineTo(bx,by+6);
   ctx.moveTo(bx+px,by-6); ctx.lineTo(bx+px,by+6); ctx.stroke();
-  ctx.fillStyle=hexa(SNOW,.5*a); ctx.font=`400 16px ${MONO}`;
+  ctx.fillStyle=hexa(SNOW,.5*a); ctx.font=`600 16px ${MONO}`;
   ctx.fillText('1 km', bx+px/2, by-14);
   ctx.textAlign='left';
 }
@@ -373,7 +373,7 @@ function ghostLines(a){
     ctx.stroke();
   }
   ctx.setLineDash([]);
-  ctx.font=`400 16px ${MONO}`;
+  ctx.font=`600 16px ${MONO}`;
   for(const p of D.ghostPins){
     const x=PR.x(p.lon), y=PR.y(p.lat);
     ctx.fillStyle=hexa(MIST,.5*a);
@@ -430,7 +430,7 @@ function fieldLog(t, head, current, headXY){
   const b = L.log;
   const ROW = 44, GAP = 18;
   ctx.textAlign='left';
-  ctx.font=`500 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.9);
+  ctx.font=`700 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.9);
   tracked('FIELD LOG', b.x, b.y+14, 4,'left');
   ctx.textAlign='right'; ctx.fillStyle=hexa(SNOW,.75);
   tracked(String(current?current.n:0).padStart(2,'0')+' / '+POPS.length, b.x+b.w, b.y+14, 2,'right');
@@ -439,7 +439,7 @@ function fieldLog(t, head, current, headXY){
   ctx.beginPath(); ctx.moveTo(b.x,b.y+30.5); ctx.lineTo(b.x+b.w,b.y+30.5); ctx.stroke();
 
   if (!current){
-    ctx.font=`400 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.7);
+    ctx.font=`600 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.7);
     wrap('Two days at Darcha first, getting used to the air.', b.w-8, 3)
       .forEach((l,i)=> ctx.fillText(l, b.x, b.y+76+i*28));
     return;
@@ -455,16 +455,16 @@ function fieldLog(t, head, current, headXY){
   ctx.globalAlpha = enter;
   const rise = (1-enter)*10;
   let y = top + rise;
-  ctx.font=`500 20px ${MONO}`; ctx.fillStyle=col;
+  ctx.font=`700 20px ${MONO}`; ctx.fillStyle=col;
   const meta = D.cum[current.i].toFixed(2)+' KM   '+P[current.i][2].toLocaleString('en-IN')+' M';
   tracked(meta, b.x+14, y, 2.5,'left');
-  ctx.font=`600 40px ${DISPLAY}`; ctx.fillStyle=SNOW;
+  ctx.font=`800 40px ${DISPLAY}`; ctx.fillStyle=SNOW;
   const titleLines = wrap(current.t, inner, 3);
   let ty = y + 12;
   for (const line of titleLines){ ty += 38; ctx.fillText(line, b.x+14, ty); }
   let noteBottom = ty;
   if (current.s){
-    ctx.font=`400 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.95);
+    ctx.font=`600 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.95);
     const noteLines = wrap(current.s, inner, 3);
     noteBottom = ty + 8;
     for (const line of noteLines){ noteBottom += 25; ctx.fillText(line, b.x+14, noteBottom); }
@@ -486,9 +486,9 @@ function fieldLog(t, head, current, headXY){
     const a = clamp(0.55 - k*0.1, 0.08, .55) * enter;
     ctx.fillStyle=hexa(COL[p.day], a*1.2);
     ctx.beginPath(); ctx.arc(b.x+5, yy-6, 3, 0, 7); ctx.fill();
-    ctx.font=`400 17px ${MONO}`; ctx.fillStyle=hexa(MIST,a);
+    ctx.font=`600 17px ${MONO}`; ctx.fillStyle=hexa(MIST,a);
     const tw = tracked(D.cum[p.i].toFixed(1)+' km', b.x+20, yy, 0.5,'left');
-    ctx.font=`400 27px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,a);
+    ctx.font=`600 27px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,a);
     ctx.fillText(ellipsis(p.t, b.w-(tw+34)), b.x+28+tw, yy+1);
   }
 }
@@ -521,14 +521,14 @@ function profileUnused(head, a){
   const yOf = e => p.y+p.h - (e-lo)/(hi-lo)*p.h;
   const xOf = km => p.x + (km/TOTAL_KM)*p.w;
   ctx.globalAlpha=a; ctx.textAlign='left';
-  ctx.font=`500 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.9);
+  ctx.font=`700 19px ${MONO}`; ctx.fillStyle=hexa(MIST,.9);
   tracked('ALTITUDE', p.x, p.y-20, 4,'left');
   ctx.textAlign='right';
   for(const e of [5000,5200]){
     const y=Math.round(yOf(e))+.5;
     ctx.strokeStyle=hexa(MIST,.16); ctx.lineWidth=1;
     ctx.beginPath(); ctx.moveTo(p.x,y); ctx.lineTo(p.x+p.w,y); ctx.stroke();
-    ctx.font=`400 15px ${MONO}`; ctx.fillStyle=hexa(MIST,.55);
+    ctx.font=`600 15px ${MONO}`; ctx.fillStyle=hexa(MIST,.55);
     ctx.fillText(e+' m', p.x+p.w-6, y-7);
   }
   ctx.textAlign='left';
@@ -558,9 +558,9 @@ function profileUnused(head, a){
   ctx.beginPath(); ctx.moveTo(x,p.y); ctx.lineTo(x,p.y+p.h); ctx.stroke();
   ctx.fillStyle=SNOW; ctx.beginPath(); ctx.arc(x,y,5,0,7); ctx.fill();
   ctx.textAlign='right';
-  ctx.font=`400 22px ${MONO}`; ctx.fillStyle=MIST;
+  ctx.font=`600 22px ${MONO}`; ctx.fillStyle=MIST;
   ctx.fillText('m', p.x+p.w, p.y-20);
-  ctx.font=`600 54px ${DISPLAY}`; ctx.fillStyle=SNOW;
+  ctx.font=`800 54px ${DISPLAY}`; ctx.fillStyle=SNOW;
   ctx.fillText(Math.round(ele).toLocaleString('en-IN'), p.x+p.w-30, p.y-16);
   ctx.textAlign='left'; ctx.globalAlpha=1;
   return {km, ele};
@@ -586,15 +586,15 @@ function stats(km, gain, a, curEle, shotCount, pre){
       ctx.strokeStyle=hexa(MIST,.16); ctx.lineWidth=1;
       ctx.beginPath(); ctx.moveTo(x-22,s.y-4); ctx.lineTo(x-22,s.y+s.h-24); ctx.stroke();
     }
-    ctx.font=`500 18px ${MONO}`; ctx.fillStyle=hexa(MIST,.9);
+    ctx.font=`700 18px ${MONO}`; ctx.fillStyle=hexa(MIST,.9);
     tracked(it[0], x, s.y+14, 4,'left');
-    ctx.font=`600 54px ${DISPLAY}`; ctx.fillStyle=SNOW;
+    ctx.font=`800 54px ${DISPLAY}`; ctx.fillStyle=SNOW;
     ctx.fillText(it[1], x, s.y+76);
     const w=ctx.measureText(it[1]).width;
-    ctx.font=`400 21px ${MONO}`; ctx.fillStyle=MIST;
+    ctx.font=`600 21px ${MONO}`; ctx.fillStyle=MIST;
     ctx.fillText(it[2], x+w+9, s.y+76);
   });
-  ctx.font=`400 18px ${MONO}`; ctx.fillStyle=hexa(MIST,.65);
+  ctx.font=`600 18px ${MONO}`; ctx.fillStyle=hexa(MIST,.65);
   tracked('DARCHA · BARALACHA LA · KYA TSO · TWIN LAKES', L.foot.x, L.foot.y, 3,'left');
   ctx.globalAlpha=1;
 }
@@ -603,11 +603,11 @@ function summary(a){
   const b=L.log;
   ctx.save(); ctx.globalAlpha=a; ctx.textAlign='left';
   const y=b.y+56;
-  ctx.font=`500 20px ${MONO}`; ctx.fillStyle=COL[1];
+  ctx.font=`700 20px ${MONO}`; ctx.fillStyle=COL[1];
   tracked('TREK COMPLETE', b.x+14, y, 4,'left');
-  ctx.font=`700 62px ${DISPLAY}`; ctx.fillStyle=SNOW;
+  ctx.font=`900 62px ${DISPLAY}`; ctx.fillStyle=SNOW;
   ctx.fillText(TOTAL_KM.toFixed(1)+' km', b.x+14, y+72);
-  ctx.font=`400 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.95);
+  ctx.font=`600 20px ${MONO}`; ctx.fillStyle=hexa(MIST,.95);
   const lines=[
     TOTAL_GAIN.toLocaleString('en-IN')+' m of climbing',
     'High point '+HIGH.toLocaleString('en-IN')+' m',
@@ -627,7 +627,7 @@ function safeGuides(){
   const top = L.reel ? 120 : 40, bot = L.reel ? 1740 : H-40;
   ctx.strokeRect(30, top, W-60, bot-top);
   ctx.setLineDash([]);
-  ctx.fillStyle='rgba(255,107,107,.85)'; ctx.font=`400 17px ${MONO}`;
+  ctx.fillStyle='rgba(255,107,107,.85)'; ctx.font=`600 17px ${MONO}`;
   ctx.fillText('Instagram overlays sit outside this box', 34, top-12);
   ctx.restore();
 }
@@ -749,16 +749,16 @@ function backdrop(){
 function titleBar(a, dayIdx, pre, post){
   const h=L.head;
   ctx.textAlign='left';
-  ctx.font=`500 25px ${MONO}`; ctx.fillStyle=hexa(SNOW,.8*a);
+  ctx.font=`700 25px ${MONO}`; ctx.fillStyle=hexa(SNOW,.8*a);
   tracked('LAHAUL · HIMACHAL PRADESH', h.x, h.y+16, 2.5,'left');
   const label = pre ? 'GETTING THERE · 2–3 AUG'
               : (post ? 'WALKING OUT · 7 AUG'
                       : D.days[dayIdx].label.toUpperCase()+' · '+D.days[dayIdx].date.toUpperCase());
   ctx.textAlign='right';
-  ctx.font=`500 27px ${MONO}`; ctx.fillStyle=hexa(pre||post ? '#C6D6DE' : COL[dayIdx], a);
+  ctx.font=`700 27px ${MONO}`; ctx.fillStyle=hexa(pre||post ? '#C6D6DE' : COL[dayIdx], a);
   tracked(label, h.x+h.w, h.y+16, 1.8,'right');
   ctx.textAlign='left';
-  ctx.font=`700 64px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,a);
+  ctx.font=`900 64px ${DISPLAY}`; ctx.fillStyle=hexa(SNOW,a);
   tracked('CHANDRABHAGA GLACIERS TREK', h.x, h.y+84, 1,'left');
 }
 function hero(t){
@@ -774,19 +774,19 @@ function captionBar(t, a){
   ctx.save(); ctx.globalAlpha = a;
   ctx.textAlign='left';
   let size = 44;
-  ctx.font=`400 ${size}px ${DISPLAY}`;
+  ctx.font=`600 ${size}px ${DISPLAY}`;
   while (size > 32 && ctx.measureText(ph.cap).width > c.w-270){
-    size -= 2; ctx.font=`400 ${size}px ${DISPLAY}`;
+    size -= 2; ctx.font=`600 ${size}px ${DISPLAY}`;
   }
   const capY = c.y;
   ctx.fillStyle=SNOW;
   ctx.fillText(ellipsis(ph.cap, c.w-260), c.x, capY);
   ctx.textAlign='right';
-  ctx.font=`400 29px ${MONO}`; ctx.fillStyle=hexa(SNOW,.82);
+  ctx.font=`600 29px ${MONO}`; ctx.fillStyle=hexa(SNOW,.82);
   tracked((ph.time ? ph.date+' · '+ph.time : ph.date).toUpperCase(), c.x+c.w, capY-4, 1.5,'right');
   ctx.textAlign='left';
   if (ph.sub){
-    ctx.font=`400 26px ${MONO}`; ctx.fillStyle=hexa(SNOW,.82);
+    ctx.font=`600 26px ${MONO}`; ctx.fillStyle=hexa(SNOW,.82);
     ctx.fillText(ellipsis(ph.sub, c.w), c.x, capY+44);
   }
   ctx.restore();
@@ -806,10 +806,10 @@ function bottomRow(t, km, ele, shots, pre, post){
   ctx.fillStyle=pre?hexa(MIST,.5):COL[P[headAt(t).i][3]];
   ctx.fillRect(ru.x, ru.y, ru.w*prog, 2);
   ctx.textAlign='left';
-  ctx.font=`500 28px ${MONO}`; ctx.fillStyle=hexa(SNOW,.8);
+  ctx.font=`700 28px ${MONO}`; ctx.fillStyle=hexa(SNOW,.8);
   tracked(pre ? 'AT DARCHA' : (post ? 'TREK DONE' : 'ON THE ROUTE'), r.x, r.y, 3,'left');
   ctx.textAlign='right';
-  ctx.font=`600 44px ${DISPLAY}`; ctx.fillStyle=SNOW;
+  ctx.font=`800 44px ${DISPLAY}`; ctx.fillStyle=SNOW;
   const bits = pre
     ? shots+' / '+mediaTotal()+' shots'
     : km.toFixed(1)+' km   ·   '+Math.round(ele).toLocaleString('en-IN')+' m   ·   '+shots+' / '+mediaTotal()+' shots';
@@ -820,7 +820,7 @@ function endLine(a){
   const c = L.cap;
   ctx.save(); ctx.globalAlpha=a;
   ctx.textAlign='left';
-  ctx.font=`400 30px ${MONO}`; ctx.fillStyle=hexa(MIST,.95);
+  ctx.font=`600 30px ${MONO}`; ctx.fillStyle=hexa(MIST,.95);
   ctx.fillText('29.5 km walked · 2,154 m climbed · high point 5,311 m', c.x, c.y+2);
   ctx.restore();
 }
@@ -832,7 +832,7 @@ function watermark(){
   if (!WATERMARK) return;
   ctx.save();
   ctx.textAlign='right';
-  ctx.font=`500 26px ${MONO}`;
+  ctx.font=`700 26px ${MONO}`;
   ctx.fillStyle=hexa(SNOW,.55);
   ctx.shadowColor='rgba(0,0,0,.5)'; ctx.shadowBlur=6;
   ctx.fillText(WATERMARK, L.photo.x+L.photo.w-16, L.photo.y+L.photo.h-16);
@@ -867,7 +867,7 @@ function draw(t){
   const km  = D.cum[head.i] + (head.i<N-1 ? (D.cum[head.i+1]-D.cum[head.i])*head.f : 0);
   const ele = P[head.i][2]  + (head.i<N-1 ? (P[head.i+1][2]-P[head.i][2])*head.f : 0);
   bottomRow(t, km, ele, photoCount(t), pre, post);
-  ctx.font=`400 24px ${MONO}`; ctx.fillStyle=hexa(SNOW,.6);
+  ctx.font=`600 24px ${MONO}`; ctx.fillStyle=hexa(SNOW,.6);
   tracked('PHOTOS AND TIMES MY OWN · ROUTE APPROXIMATE', L.foot.x, L.foot.y, 2,'left');
 
   watermark();
@@ -1074,10 +1074,10 @@ function boot(){ setSize(); buildClipButtons(); loadPix(()=>{ setSize(); draw(0)
 if (document.fonts && document.fonts.load){
   Promise.race([
     Promise.all([
-      document.fonts.load('700 92px "Barlow Condensed"'),
-      document.fonts.load('600 40px "Barlow Condensed"'),
-      document.fonts.load('400 20px "IBM Plex Mono"'),
-      document.fonts.load('500 19px "IBM Plex Mono"')
+      document.fonts.load('900 92px "Barlow Condensed"'),
+      document.fonts.load('800 40px "Barlow Condensed"'),
+      document.fonts.load('600 20px "IBM Plex Mono"'),
+      document.fonts.load('700 19px "IBM Plex Mono"')
     ]),
     new Promise(r=>setTimeout(r,2500))
   ]).then(boot, boot);
