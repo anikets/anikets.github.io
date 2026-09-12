@@ -29,6 +29,15 @@
   .sep{width:1px;height:22px;background:#1C2B35}
   .hint{color:#4E6673;text-transform:none;letter-spacing:.02em}
   #status{color:#7FE0D4;text-transform:none;letter-spacing:.02em}
+  #seekWrap{flex:1 1 100%;order:-1;display:flex;align-items:center;gap:10px}
+  #seek{-webkit-appearance:none;appearance:none;flex:1;height:4px;background:#1C2B35;
+    border-radius:2px;outline:none}
+  #seek::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:#7FE0D4;cursor:pointer;margin-top:-5px}
+  #seek::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#7FE0D4;
+    cursor:pointer;border:none}
+  #seek::-moz-range-track{height:4px;background:#1C2B35;border-radius:2px}
+  #seekTime{color:#5E7683;white-space:nowrap;min-width:9ch;text-align:right}
   body.playing #bar{display:none}
   body.playing #stagewrap{padding:0;background:#000}
   body.playing{background:#000}
@@ -41,6 +50,13 @@
     <button id="play" class="primary">Play</button>
     <button id="restart">Restart</button>
     <div class="sep"></div>
+    <div id="seekWrap">
+      <button id="prevSlide" title="Previous photo or clip">◀ Slide</button>
+      <input type="range" id="seek" list="seekmarks" min="0" max="1" step="0.05" value="0">
+      <datalist id="seekmarks"></datalist>
+      <button id="nextSlide" title="Next photo or clip">Slide ▶</button>
+      <span id="seekTime">0.0s / 0.0s</span>
+    </div>
     <label>Length
       <select id="dur">
         <option value="120">120 s</option>
@@ -64,7 +80,7 @@
     <button id="exportIg">Export for Instagram</button>
     <button id="exportTw">Export for Twitter</button>
     <span id="status"></span>
-    <span class="hint">Space plays and pauses · Esc brings the controls back · F11 for full screen before you record</span>
+    <span class="hint">Space plays and pauses · ←/→ or the slider jumps between photos and clips · Esc brings the controls back · F11 for full screen before you record</span>
   </div>
 </div>
 
@@ -162,8 +178,12 @@ function buildSchedule(duration){
     u += holds.has(i) ? holds.get(i) : 0;
     tOut[i] = u;
   }
+  const jumps = preAt.map(a => a.start)
+    .concat(RI.map(x => tIn[x.idx]))
+    .sort((a,b) => a-b);
   SCHED = {intro, outro, hold:photoHold, preT, preAt, RI, HOLD:holds,
-           tIn, tOut, end:u, total:u+outro};
+           tIn, tOut, end:u, total:u+outro, jumps};
+  syncSeekRange();
 }
 function headAt(t){
   const {tIn,tOut,end} = SCHED;
@@ -861,6 +881,8 @@ function loop(now){
   cur=(now-t0)/1000;
   if (cur>=SCHED.total){ cur=SCHED.total; draw(cur); stop(); return; }
   draw(cur);
+  seekEl.value = String(cur);
+  updateSeekTime();
   raf=requestAnimationFrame(loop);
 }
 function play(from){
@@ -884,17 +906,54 @@ const safeBtn=document.getElementById('safe'), exportBtn=document.getElementById
 const exportIgBtn=document.getElementById('exportIg'), exportTwBtn=document.getElementById('exportTw');
 const restartBtn=document.getElementById('restart'), statusEl=document.getElementById('status');
 const stage=document.getElementById('stage'), wrapEl=document.getElementById('stagewrap');
+const seekEl=document.getElementById('seek'), seekTimeEl=document.getElementById('seekTime');
+const seekMarks=document.getElementById('seekmarks');
+const prevSlideBtn=document.getElementById('prevSlide'), nextSlideBtn=document.getElementById('nextSlide');
+
+function updateSeekTime(){
+  seekTimeEl.textContent = cur.toFixed(1)+'s / '+SCHED.total.toFixed(1)+'s';
+}
+function syncSeekRange(){
+  seekEl.max = String(SCHED.total);
+  seekEl.value = String(Math.min(cur, SCHED.total));
+  seekMarks.innerHTML = SCHED.jumps.map(p => `<option value="${p}"></option>`).join('');
+  updateSeekTime();
+}
+function seekTo(t){
+  if (playing) stop();
+  cur = clamp(t, 0, SCHED.total);
+  draw(cur);
+  seekEl.value = String(cur);
+  updateSeekTime();
+}
+function jumpSlide(dir){
+  const pts = SCHED.jumps, eps = 0.01;
+  if (!pts.length) return;
+  if (dir > 0){
+    const next = pts.find(p => p > cur+eps);
+    seekTo(next != null ? next : SCHED.total);
+  } else {
+    let prev = 0;
+    for (const p of pts){ if (p < cur-eps) prev = p; else break; }
+    seekTo(prev);
+  }
+}
 
 playBtn.onclick = ()=> playing ? stop() : play(cur>=SCHED.total ? 0 : cur);
 restartBtn.onclick = ()=>{ stop(); play(0); };
 safeBtn.onclick = ()=>{ showSafe=!showSafe; safeBtn.setAttribute('aria-pressed',showSafe); draw(cur); };
-durSel.onchange = ()=>{ stop(); buildSchedule(+durSel.value); cur=0; draw(0); };
-ratioSel.onchange = ()=>{ stop(); setSize(); cur=0; draw(0); };
+durSel.onchange = ()=>{ stop(); buildSchedule(+durSel.value); seekTo(0); };
+ratioSel.onchange = ()=>{ stop(); setSize(); seekTo(0); };
+seekEl.oninput = ()=> seekTo(+seekEl.value);
+prevSlideBtn.onclick = ()=> jumpSlide(-1);
+nextSlideBtn.onclick = ()=> jumpSlide(1);
 let actual=false;
 zoomBtn.onclick = ()=>{ actual=!actual; zoomBtn.setAttribute('aria-pressed',actual); fit(); };
 document.addEventListener('keydown', e=>{
   if(e.code==='Space'){ e.preventDefault(); playBtn.onclick(); }
   if(e.code==='Escape') stop();
+  if(e.code==='ArrowRight' && document.activeElement!==seekEl) jumpSlide(1);
+  if(e.code==='ArrowLeft' && document.activeElement!==seekEl) jumpSlide(-1);
 });
 stage.addEventListener('click', ()=>{ if(playing) stop(); });
 
@@ -977,7 +1036,7 @@ function buildClipButtons(){
       CLIPV.get(c.id).ready = true;
       btn.setAttribute('aria-pressed','true');
       btn.textContent = c.label + ' ✓';
-      stop(); buildSchedule(+durSel.value); cur = 0; draw(0);
+      stop(); buildSchedule(+durSel.value); seekTo(0);
       statusEl.textContent = c.label + ' attached — ' + (c.end-c.start).toFixed(1) + ' s in use.';
     };
     inp.onchange = ()=>{

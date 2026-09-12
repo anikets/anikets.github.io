@@ -24,8 +24,13 @@ Everything lives in one file. Open it in a text editor and you'll find:
 2. `<script id="pix" type="application/json">` — the photos, as base64 JPEG
    data URLs plus `slot`, `idx`, `time`, `date`, `alt`, `cap`, optional `sub`.
    This is why the file is ~6.5 MB.
-3. `const CLIPS = [...]` near the top of the main script — video clip config.
-   Clips are **not** embedded; the user attaches local files at runtime.
+3. `const CLIPS = [...]` near the top of the main script — video clip config,
+   including a `src:` filename for each clip (e.g. `river-waves.mp4`). The
+   clip files themselves are **not** embedded in the HTML — they're separate
+   `.mp4` files committed alongside it in `cgt-2026/` and auto-load on page
+   load. The manual "Clips" row in the control bar still exists as a fallback:
+   pick a local file there to override a bundled clip, e.g. to test new
+   footage before converting/committing it.
 
 ## How photos got their positions
 
@@ -112,25 +117,70 @@ Don't:
 
 ## Clips
 
-Four slots, attached at runtime from the Clips row. Files stay on disk; nothing
-is embedded. Because a local video drawn onto a canvas can taint it under
-`file://`, **serve the folder over localhost** before using Save video:
+Four slots — `river-waves.mp4`, `the-drive.mp4`, `pushups.mp4`,
+`snow-throw.mp4` — committed in `cgt-2026/` next to the HTML and referenced by
+`src:` in `CLIPS`. They auto-load on page load; no manual step needed for a
+normal run. Each was prepared with ffmpeg before committing: re-encoded to
+H.264 (iPhone HEVC `.mov` may not decode in Chrome's canvas pipeline), muted
+(clips always render `muted=true` anyway), and stripped of EXIF/GPS metadata:
+
+```
+ffmpeg -i in.mov -map_metadata -1 -c:v libx264 -crf 20 -pix_fmt yuv420p -an out.mp4
+```
+
+`the-drive.mp4` also had to be trimmed to just its used window (`-ss`/`-to`)
+to fit under GitHub's 100 MB file limit. If you replace a clip with a longer
+one, check the committed file size and, if you trim it, update that clip's
+`start`/`end` in `CLIPS` to match — trimming resets the output file's internal
+clock to 0, so an untrimmed offset will point at the wrong frames.
+
+The Clips row in the control bar is a manual override, not the primary path:
+click a clip's button to attach a different local file instead of the bundled
+one. Because a local video drawn onto a canvas can taint it under `file://`,
+**serve the folder over localhost** before using Save video or any export
+button:
 
 ```
 cd <folder> && python3 -m http.server 8123 --bind 127.0.0.1
 ```
 
-iPhone HEVC `.mov` may not decode in Chrome. Convert:
-`ffmpeg -i in.mov -c:v libx264 -crf 20 out.mp4`.
-
 ## Recording
 
-Play (or Space), F11 for full screen, then screen record; or use Save video for
-a clean 1080×1920 WebM straight from the canvas. Instagram won't take WebM:
+Play (or Space), F11 for full screen, then screen record; or use one of the
+export buttons for a clean 1080×1920 WebM straight from the canvas:
+
+- **Save video** — no watermark.
+- **Export for Instagram** / **Export for Twitter** — the same recording, but
+  stamps a small handle watermark (`@aniketsur` / `@44Sur`) onto the
+  bottom-right corner of the photo *only while recording* — `WATERMARK` is set
+  for the duration of `recordVideo()` and cleared in its `onstop`, so the live
+  editor view never shows it. Both force the 9:16 frame regardless of the
+  current Frame dropdown.
+
+All three download WebM; Instagram won't take that container, convert first:
 `ffmpeg -i in.webm -c:v libx264 -pix_fmt yuv420p out.mp4`.
 
 Frame options are 9:16 reel and 4:5 feed. The Safe area toggle shows where
 Instagram's controls sit.
+
+## Jumping between slides
+
+Reviewing one specific photo or clip used to mean playing through from the
+start. The control bar has a **seek slider** plus **◀ Slide / Slide ▶**
+buttons (also ← / → when the slider isn't focused):
+
+- The slider spans `0` to `SCHED.total` and scrubs to any arbitrary time.
+- Slide-jump snaps to the exact start of the previous/next photo or clip, from
+  `SCHED.jumps` — the sorted union of `SCHED.preAt[].start` (approach items)
+  and `SCHED.tIn[idx]` for each item in `SCHED.RI` (on-route items). It's
+  rebuilt every time `buildSchedule()` runs, so it stays correct as the route,
+  photo count or clip placement changes.
+- Everything that changes `cur` funnels through one `seekTo(t)` (next to
+  `play`/`stop` in the transport section), which pauses playback if running,
+  redraws that frame, and updates the slider/time label. If you add another
+  way to change the play position, route it through `seekTo` /
+  `syncSeekRange` rather than setting `cur` directly — that's what keeps the
+  slider from drifting out of sync with the canvas.
 
 ## Testing changes
 
