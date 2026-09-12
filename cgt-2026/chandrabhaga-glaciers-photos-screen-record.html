@@ -791,12 +791,88 @@ function captionBar(t, a){
   }
   ctx.restore();
 }
+/* a soft relief texture for the route inset, built once from real elevation
+   samples along the path. Quantizing elevation into bands (rather than a
+   smooth gradient) gives a topographic, contour-like read at this size. It's
+   generated in the inset's own local space (relative to L.map's top-left),
+   so it stays valid even as placeInset() pans L.map.x/y around to track the
+   photo underneath — only insetW/insetH (fixed in layout()) would ever
+   invalidate it, and those never change. */
+let TERRAIN = null;
+function terrainColor(t){
+  const stops = [[0,20,31,39],[.55,58,78,89],[1,201,217,221]];
+  let a = stops[0], b = stops[stops.length-1];
+  for (let i=0;i<stops.length-1;i++){
+    if (t >= stops[i][0] && t <= stops[i+1][0]){ a = stops[i]; b = stops[i+1]; break; }
+  }
+  const f = b[0]>a[0] ? (t-a[0])/(b[0]-a[0]) : 0;
+  return [a[1]+(b[1]-a[1])*f, a[2]+(b[2]-a[2])*f, a[3]+(b[3]-a[3])*f];
+}
+function buildTerrain(){
+  if (TERRAIN) return;
+  const m = L.map, gw = 56, gh = 62, bands = 6;
+  let minEle = Infinity, maxEle = -Infinity;
+  const pts = new Float64Array(N*3);
+  for (let i=0;i<N;i++){
+    pts[i*3]   = PR.x(P[i][1]) - m.x;
+    pts[i*3+1] = PR.y(P[i][0]) - m.y;
+    pts[i*3+2] = P[i][2];
+    if (P[i][2] < minEle) minEle = P[i][2];
+    if (P[i][2] > maxEle) maxEle = P[i][2];
+  }
+  const bandOf = new Float64Array(gw*gh);
+  for (let gy=0; gy<gh; gy++){
+    for (let gx=0; gx<gw; gx++){
+      const px = (gx+.5)/gw*m.w, py = (gy+.5)/gh*m.h;
+      let wsum=0, esum=0;
+      for (let i=0;i<N;i++){
+        const dx=px-pts[i*3], dy=py-pts[i*3+1], d2=dx*dx+dy*dy;
+        if (d2 < 4){ wsum=1; esum=pts[i*3+2]; break; }
+        const w = 1/(d2*d2);
+        wsum += w; esum += w*pts[i*3+2];
+      }
+      const t = clamp((esum/wsum-minEle)/(maxEle-minEle), 0, 1);
+      bandOf[gy*gw+gx] = Math.floor(t*bands)/bands;
+    }
+  }
+  const off = document.createElement('canvas');
+  off.width = gw; off.height = gh;
+  const octx = off.getContext('2d');
+  const img = octx.createImageData(gw, gh);
+  for (let gy=0; gy<gh; gy++){
+    for (let gx=0; gx<gw; gx++){
+      const idx = gy*gw+gx, band = bandOf[idx];
+      const edge = (gx<gw-1 && bandOf[idx+1]!==band) || (gy<gh-1 && bandOf[idx+gw]!==band);
+      const [r,g,b] = terrainColor(band), k = edge ? 1.35 : 1;
+      const p = idx*4;
+      img.data[p]=Math.min(255,r*k); img.data[p+1]=Math.min(255,g*k);
+      img.data[p+2]=Math.min(255,b*k); img.data[p+3]=255;
+    }
+  }
+  octx.putImageData(img,0,0);
+  const tex = document.createElement('canvas');
+  tex.width = m.w; tex.height = m.h;
+  const tctx = tex.getContext('2d');
+  tctx.imageSmoothingEnabled = true;
+  if (tctx.imageSmoothingQuality) tctx.imageSmoothingQuality = 'high';
+  tctx.drawImage(off, 0, 0, gw, gh, 0, 0, m.w, m.h);
+  TERRAIN = tex;
+}
 function insetPanel(){
   const m = L.map;
+  buildTerrain();
   ctx.save();
   rr(m.x-12, m.y-12, m.w+24, m.h+24, 2);
-  ctx.fillStyle='rgba(5,11,16,.86)'; ctx.fill();
-  ctx.strokeStyle=hexa(MIST,.22); ctx.lineWidth=1; ctx.stroke();
+  ctx.fillStyle='#0A1319'; ctx.fill();
+  ctx.save();
+  rr(m.x-12, m.y-12, m.w+24, m.h+24, 2); ctx.clip();
+  ctx.drawImage(TERRAIN, m.x, m.y);
+  const vg = ctx.createRadialGradient(m.x+m.w/2, m.y+m.h*.35, m.h*.15, m.x+m.w/2, m.y+m.h/2, m.h*.85);
+  vg.addColorStop(0, 'rgba(5,11,16,0)'); vg.addColorStop(1, 'rgba(5,11,16,.55)');
+  ctx.fillStyle = vg; ctx.fillRect(m.x-12, m.y-12, m.w+24, m.h+24);
+  ctx.restore();
+  ctx.strokeStyle=hexa(MIST,.28); ctx.lineWidth=1;
+  rr(m.x-12, m.y-12, m.w+24, m.h+24, 2); ctx.stroke();
   ctx.restore();
 }
 function bottomRow(t, km, ele, shots, pre, post){
