@@ -214,7 +214,7 @@ function layout(){
     head:  {x:pad, y:bandTop, w:W-pad*2, h:headH},
     photo: {x:pad, y:photoY, w:W-pad*2, h:photoH},
     cap:   {x:pad, y:base+52, w:W-pad*2},
-    map:   {x:pad+162, y:photoY+photoH-insetH-109, w:insetW, h:insetH},
+    map:   {x:pad+16, y:photoY+photoH-insetH-16, w:insetW, h:insetH},
     rule:  {x:pad, y:base+128, w:W-pad*2},
     row:   {x:pad, y:base+182, w:W-pad*2},
     foot:  {x:pad, y:base+270, w:W-pad*2}
@@ -653,19 +653,11 @@ function pickPhoto(t){
   }
   return null;
 }
-let mediaRect = null, rowDY = 0;
+let rowDY = 0;
 function fitInto(b, w, h){
   const s = Math.min((b.w-8)/w, (b.h-8)/h);
   const dw = Math.round(w*s), dh = Math.round(h*s);
   return {x: b.x + Math.round((b.w-dw)/2), y: b.y + Math.round((b.h-dh)/2), w:dw, h:dh};
-}
-function placeInset(){
-  if (!mediaRect) return;
-  const nx = mediaRect.x + 16;
-  const ny = mediaRect.y + mediaRect.h - L.map.h - 16;
-  if (Math.abs(nx-L.map.x) > 0.5 || Math.abs(ny-L.map.y) > 0.5){
-    L.map.x = nx; L.map.y = ny; project();
-  }
 }
 function drawPhoto(item, alpha, t){
   if (!item || alpha <= 0.01) return;
@@ -681,7 +673,6 @@ function drawPhoto(item, alpha, t){
         sx = (sw-side)/2; sy = (sh-side)/2; sw = sh = side;
       }
       const r = fitInto(b, sw, sh);
-      if (alpha >= 0.5) mediaRect = r;
       ctx.drawImage(v, sx, sy, sw, sh, r.x, r.y, r.w, r.h);
       ctx.strokeStyle=hexa(MIST,.28); ctx.lineWidth=1;
       ctx.strokeRect(r.x+.5, r.y+.5, r.w-1, r.h-1);
@@ -692,7 +683,6 @@ function drawPhoto(item, alpha, t){
   const ph = item.p, im = IMG.get(ph.src);
   if (!im || !im.width){ ctx.restore(); return; }
   const r = fitInto(b, ph.w, ph.h);
-  if (alpha >= 0.5) mediaRect = r;
   ctx.drawImage(im, r.x, r.y, r.w, r.h);
   ctx.strokeStyle=hexa(MIST,.28); ctx.lineWidth=1;
   ctx.strokeRect(r.x+.5, r.y+.5, r.w-1, r.h-1);
@@ -795,9 +785,8 @@ function captionBar(t, a){
    samples along the path. Quantizing elevation into bands (rather than a
    smooth gradient) gives a topographic, contour-like read at this size. It's
    generated in the inset's own local space (relative to L.map's top-left),
-   so it stays valid even as placeInset() pans L.map.x/y around to track the
-   photo underneath — only insetW/insetH (fixed in layout()) would ever
-   invalidate it, and those never change. */
+   which is fixed by layout() for a given frame ratio, so one texture is
+   valid for the whole session. */
 let TERRAIN = null;
 function terrainColor(t){
   const stops = [[0,20,31,39],[.55,58,78,89],[1,201,217,221]];
@@ -928,7 +917,6 @@ function draw(t){
   titleBar(a, day, pre, post);
   hero(t);
 
-  placeInset();
   const insetA = ease((t - SCHED.preT)/0.9);
   if (insetA > 0.01){
     ctx.save(); ctx.globalAlpha = insetA;
