@@ -21,14 +21,27 @@ Everything lives in one file. Open it in a text editor and you'll find:
    `[lat, lon, elevation, dayIndex]`, cumulative distance, cumulative climb,
    recce waypoints, ghost tracks, day labels. Derived from a GaiaGPS recce GPX
    that someone else recorded in June 2025.
-2. `<script id="pix" type="application/json">` — the photos, as base64 JPEG
-   data URLs plus `slot`, `idx`, `time`, `date`, `alt`, `cap`, optional `sub`.
-   This is why the file is ~6.5 MB.
+2. `<script id="pix" type="application/json">` — the photos, each entry a
+   `src` (relative path into `cgt-2026/assets/img/`, e.g.
+   `assets/img/photo-09-route-278.jpg`) plus `w`, `h`, `slot`, `idx`, `time`,
+   `date`, `alt`, `cap`, optional `sub`. Photos used to be embedded as base64
+   JPEG data URLs directly in this block (that's why older commits show the
+   file at ~6.5 MB); they were externalized to keep the HTML file small and
+   diffable. `w`/`h` are the actual pixel dimensions of the file, used for
+   layout before the image finishes loading — keep them in sync if you replace
+   a photo. File naming is `photo-<order-in-array>-<slot>[-<idx>].jpg`; order
+   matches the array (chronological), and `idx` (when not `pre`/`post`) is the
+   route path index the photo is pinned to. Because `src` is now a relative
+   URL, `loadPix()`'s `new Image(); im.src = ph.src` requires the page to be
+   served over localhost, same as the clip-loading note below — `file://`
+   works too for plain display but the canvas export path taints on local
+   files, so always serve for anything beyond a quick look.
 3. `const CLIPS = [...]` near the top of the main script — video clip config,
-   including a `src:` filename for each clip (e.g. `river-waves.mp4`). The
-   clip files themselves are **not** embedded in the HTML — they're separate
-   `.mp4` files committed alongside it in `cgt-2026/` and auto-load on page
-   load. The manual "Clips" row in the control bar still exists as a fallback:
+   including a `src:` path for each clip (e.g. `assets/video/river-waves.mp4`).
+   The clip files themselves are **not** embedded in the HTML — they're
+   separate `.mp4` files committed under `cgt-2026/assets/video/` and
+   auto-load on page load. The manual "Clips" row in the control bar still
+   exists as a fallback:
    pick a local file there to override a bundled clip, e.g. to test new
    footage before converting/committing it.
 
@@ -118,9 +131,9 @@ Don't:
 ## Clips
 
 Four slots — `river-waves.mp4`, `the-drive.mp4`, `pushups.mp4`,
-`snow-throw.mp4` — committed in `cgt-2026/` next to the HTML and referenced by
-`src:` in `CLIPS`. They auto-load on page load; no manual step needed for a
-normal run. Each was prepared with ffmpeg before committing: re-encoded to
+`snow-throw.mp4` — committed under `cgt-2026/assets/video/` and referenced by
+`src:` in `CLIPS` as `assets/video/<file>.mp4`. They auto-load on page load;
+no manual step needed for a normal run. Each was prepared with ffmpeg before committing: re-encoded to
 H.264 (iPhone HEVC `.mov` may not decode in Chrome's canvas pipeline), muted
 (clips always render `muted=true` anyway), and stripped of EXIF/GPS metadata:
 
