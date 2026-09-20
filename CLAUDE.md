@@ -29,6 +29,10 @@ There are no tests and no linter config beyond `.editorconfig` (LF line endings,
 
 `index.html` is supposed to be *generated* from `index-dev.html` via `grunt htmlmin`, and source edits belong in `index-dev.html`. In practice the most recent nav/link changes were made directly to `index.html` without updating `index-dev.html` or re-running Grunt, so the two files currently disagree (`index-dev.html` still has the old `bit.ly` redirect links and a commented-out Blog link that `index.html` no longer has). When editing the homepage nav or head, check both files and keep them consistent rather than assuming a `grunt` run will reconcile them.
 
+## Local preview
+
+The user typically keeps a static file server running locally (e.g. `python3 -m http.server`) while working. Before starting a server to preview changes, check whether one is already running (e.g. `lsof -i :8000` or similar) and reuse it instead of starting a new one. If a separate server is genuinely needed, start it on a different port than any already in use.
+
 ## Structure
 
 - `index.html` / `index-dev.html` — the actual visiting-card homepage (built output vs. dev source, see caveat above).
