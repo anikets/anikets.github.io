@@ -207,10 +207,167 @@ There is no test suite. What worked during development:
   inputs or `MediaRecorder`. Note the bundled Chromium has no H.264, so test
   clips must be WebM.
 
+## chandrabhaga-glaciers-3d-slideshow.html
+
+Combines this file's curated slideshow (photos/clips pinned to route points,
+Aug 2026 dates) with `chandrabhaga-glaciers-3d.html`'s CesiumJS flight over
+Google Photorealistic 3D Tiles, replacing that file's 2D map inset with real
+terrain. It drops the 3D file's time/EXIF photo matching entirely — `trek`,
+`pix[].idx` and `CLIPS[].place.idx` are identical across all three files, so
+photos and clips index straight into the same 1,523-point path regardless of
+which file draws it.
+
+**Rendering architecture.** Like this file, everything that appears in an
+export is drawn on one 1080×1920 `<canvas>` — there is no DOM overlay. The
+Cesium viewer lives in an off-screen host div (`useDefaultRenderLoop:false`,
+`preserveDrawingBuffer:true`), and one `requestAnimationFrame` loop
+(`tick`/`renderAt` in the script) runs continuously, whether playing or
+paused: it positions the camera for the current time, calls `viewer.render()`,
+`drawImage`s the Cesium canvas onto the visible 2D canvas, then draws the
+photo/clip/caption/title/stats/footer on top with 2D canvas code. That keeps
+`captureStream()` export working without tab capture — confirmed in-browser
+(pasting the key and checking `cv.toDataURL()` doesn't throw) before the
+layouts were built, since Google's tiles being CORS-clean is what makes this
+approach possible at all; if that ever regresses, the 3D file's `getDisplayMedia`
+tab-recording fallback is the way out.
+
+**Three layouts**, switchable live at any seek position via the Layout
+dropdown (`LAYOUT` in the script, `composeLayout()`):
+- **A · Cut to photo** — full-frame 3D; at each stop the photo/clip
+  cross-fades in over a darkened backdrop, camera keeps drifting underneath.
+- **B · Card over 3D** — full-frame 3D stays visible; a floating card
+  (~470px, top-left) holds the current photo/clip, caption and a stat row
+  (altitude/distance/climbed/high point).
+- **C · Split** — 3D fills a top band under the title; the bottom band always
+  shows the current or last photo (falls back to the first `pre` photo before
+  the walk reaches its first route photo).
+
+All three share the canvas-drawn title block (ported from the 3D file's HTML
+typography), the day chip and progress bar, the footer, and the Google credit
+line (see below). A camera dropdown (chase/side/high, `CAMS`) and the seek
+slider/Slide buttons work the same across all three, since they all key off
+one shared `SCHED`/`head`.
+
+**Before the walk starts** (`t < SCHED.preT`, while the approach photos show),
+the camera does a slow wide orbit around path point 0 instead of the usual
+forward chase — the route polyline stays hidden until the walk begins, so the
+terrain alone carries the opening shot.
+
+**API key.** Paste-once-and-remember, same as `chandrabhaga-glaciers-3d.html`
+— in fact the same `localStorage` key (`chandrabhaga_gmaps_key`), so pasting
+it on either file covers both. **This is a deliberate exception to this
+directory's "don't use localStorage" rule above**, scoped only to the Google
+Maps API key gate in this file and its 3D sibling; nothing else in either file
+touches browser storage. The key is never written into any committed file —
+GitHub Pages is public.
+
+**Free-tier / quota hygiene.** The tileset is created once per page load and
+never recreated on layout, duration, camera or seek changes, or on replay —
+check DevTools Network for a single `tileset.json` request per session if
+this ever needs re-verifying. In Cloud Console, restrict the key by HTTP
+referrer (`http://localhost:*`) and by API (Map Tiles API only), and set a
+daily quota cap on Map Tiles API so going over the free monthly allowance for
+Photorealistic 3D Tiles is impossible rather than just alerted — that
+allowance counts root-tileset sessions, which is why the one-session-per-load
+rule matters. Avoid keeping several tabs of this page (or the 3D file) open
+at once.
+
+**Attribution.** Google's terms require the credit text and logo to stay
+visible. `creditLine()` draws it every frame, in every layout, reading
+`tileset.credits` when available and falling back to a static "Map data
+©2026 Google" line — don't remove or hide this call from any future layout.
+
+**Known simplification vs. the original plan:** the Cesium render always
+happens at the full frame size; layout C's split view crops/scales that
+full render into its band with `drawImage` rather than resizing the
+Cesium viewport per layout. Simpler and safer than juggling `viewer.resize()`
+across layout switches, at the cost of rendering a bit more than the split
+view actually uses. Revisit if that resolution cost ever matters.
+
+**Frames.** The Frame dropdown offers 9:16 reel (default), 4:5 feed and 16:9
+fullscreen; `setSize()` changes `W`/`H` and the canvas bitmap. The `#c` CSS
+must stay `width:100%;height:100%` — it was once hardcoded to 1080×1920 px,
+which left the 16:9 preview half-black while exports looked fine. When
+`W > H`, layout C splits left/right (map left, photo right) instead of
+top/bottom, and the route progress bar runs vertically down the centre seam.
+Crop maths must read the Cesium canvas's own `width`/`height`, not `W`/`H`,
+because devicePixelRatio can make them differ.
+
+**Cover slide** (`drawCoverSlide`, first `COVER_DUR` seconds, no fade-in):
+the map half shows the whole route. `drawSchematicRouteMap` draws it instantly
+on a dark background, and `coverMapPoller` (run from `boot()`'s tiles-loaded
+interval) swaps in a top-down Cesium capture once `tileset.tilesLoaded` is
+true. The result is cached per size in `COVER_MAP_CACHE`. Don't move the
+Cesium camera for this capture every frame, because that fights `renderAt`'s
+own camera and stops tiles from ever loading.
+
+**Audio.** `assets/audio/bg.mp3` plays with Play and is mixed into the
+recorded video.
+
 ## Siblings
 
 - `chandrabhaga-glaciers-3d.html` — same route flown over Google photorealistic
   3D tiles via CesiumJS. Needs a Google Maps API key with Map Tiles enabled.
-  Its photo matching is still time-first and would misplace these photos.
+  Its own photo matching is still time-first and would misplace these photos —
+  `chandrabhaga-glaciers-3d-slideshow.html` (above) is the version that fixes
+  that by reusing this file's pinned photo indices instead.
+- `chandrabhaga-glaciers-3d-slideshow.html` — the 3D flight plus this file's
+  curated slideshow, combined. See its own section above.
 - `chandrabhaga-glaciers-earth.kmz` — Google Earth Pro tour of the same route.
 - `chandrabhaga-glaciers-route.html` — the original flat map version, no photos.
+
+## Talking points for posts (LinkedIn / Instagram / X)
+
+Use this section when drafting posts about this project. The main readers are
+hiring managers and recruiters. Investors, customers and peers come second.
+Only claim what is true in the code. Don't invent numbers like views, hours
+saved or users.
+
+**Headline story.** A trek video generator, built for fun, running entirely in
+the browser. It flies the real GPS route over Google's photorealistic 3D
+terrain, places each photo where it was taken, and exports a ready-to-post
+video. There is no server, no framework and no video editor.
+
+**What it shows (for hiring managers and recruiters):**
+- **Shipped end to end.** It went from idea to a working tool used for real
+  posts, in one self-contained HTML file.
+- **Sound architecture choice.** Everything is drawn on one canvas, so the
+  browser can record the video directly. No screen recording, and a single
+  source serves 9:16 reel, 4:5 feed and 16:9 formats.
+- **Risk handled first.** The riskiest assumption (can the 3D terrain be
+  exported as video at all?) was tested before any layout work began.
+- **Cost and compliance.** One map-tile session per page load, a key limited
+  by referrer and API, a daily quota cap so going over the free tier is
+  impossible, and Google's credit visible in every frame.
+- **Debugging method.** For the half-black 16:9 preview, reading the canvas
+  pixels proved the drawing was correct, which narrowed the bug to one line
+  of CSS.
+- **Judgement about data.** Photos are pinned to route points by hand, not
+  matched by timestamp, because timestamp matching put them in the wrong
+  places.
+- **Working with AI.** Built with Claude Code as a pair programmer. The human
+  set direction, taste and acceptance criteria, and checked the results in a
+  real browser. Present this as leverage and judgement, not "AI built it".
+
+**For secondary readers:**
+- Investors and customers: fast from idea to usable output, early attention to
+  running costs, and knowing what to leave out.
+- Peers: CesiumJS with `useDefaultRenderLoop:false`, drawing the WebGL canvas
+  into a 2D canvas, `captureStream()` export, devicePixelRatio-safe cropping,
+  and the CSS-size vs bitmap-size bug.
+
+**Trek facts** (as the cover slide shows them): Chandrabhaga Glaciers, Lahaul,
+2–7 Aug 2026, with Indiahikes. High point 5,311 m, 29.5 km over 3 walking days,
+2,154 m gained. Re-check against the cover slide if the data changes.
+
+**By platform:**
+- **LinkedIn:** a short builder story (problem → key decision → one lesson),
+  with the 16:9 or 4:5 export attached. End with one concrete lesson, not a
+  list of technologies.
+- **Instagram:** the 9:16 reel leads with the trek. Keep the tech to one or two
+  lines at the end of the caption.
+- **X:** a hook line plus the video, then an optional short thread with 2–3
+  technical details from the peers list.
+
+**Don't:** show the API key or its entry screen, crop out the Google credit,
+or call it a product or startup. It is a personal build.
