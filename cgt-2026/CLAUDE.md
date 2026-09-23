@@ -302,7 +302,13 @@ Cesium camera for this capture every frame, because that fights `renderAt`'s
 own camera and stops tiles from ever loading.
 
 **Audio.** `assets/audio/bg.mp3` plays with Play and is mixed into the
-recorded video.
+recorded video. It is "Cinematic Ambient" by Kulakovka
+(https://pixabay.com/music/pulses-cinematic-ambient-274889/), under the
+Pixabay Content License. Credit isn't required but is given anyway: in a
+comment above `BG_AUDIO_SRC` and a "Music:" line in the control bar. Keep
+both if the track stays, and update them if it changes. The licence forbids
+distributing the file on its own, so only commit it alongside the page that
+uses it.
 
 ## Siblings
 
@@ -368,6 +374,11 @@ video. There is no server, no framework and no video editor.
   lines at the end of the caption.
 - **X:** a hook line plus the video, then an optional short thread with 2–3
   technical details from the peers list.
+
+**Music credit:** end every post caption with
+`Music: "Cinematic Ambient" by Kulakovka (Pixabay)`. On Instagram/YouTube,
+if a copyright claim appears anyway, the track's Pixabay page is the proof
+of licence.
 
 **Don't:** show the API key or its entry screen, crop out the Google credit,
 or call it a product or startup. It is a personal build.

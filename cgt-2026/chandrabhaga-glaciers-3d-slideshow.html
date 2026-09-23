@@ -55,6 +55,7 @@
   button[aria-pressed="true"]{border-color:#7FE0D4;color:#9BEBE1}
   .sep{width:1px;height:22px;background:#1C2B35}
   .hint{color:#4E6673;text-transform:none;letter-spacing:.02em}
+  .hint a{color:inherit}
   #status{color:#7FE0D4;text-transform:none;letter-spacing:.02em}
   #seekWrap{flex:1 1 100%;order:-1;display:flex;align-items:center;gap:10px}
   #seek{-webkit-appearance:none;appearance:none;flex:1;height:4px;background:#1C2B35;
@@ -155,6 +156,7 @@
     <button id="forget">Forget key</button>
     <span id="status">Paste a key to load the terrain.</span>
     <span class="hint">Space plays and pauses · ←/→ or the slider jumps between photos and clips · Esc brings the controls back</span>
+    <span class="hint">Music: <a href="https://pixabay.com/music/pulses-cinematic-ambient-274889/" target="_blank" rel="noopener">“Cinematic Ambient” by Kulakovka</a> via Pixabay</span>
   </div>
 </div>
 
@@ -214,6 +216,7 @@ function mediaKey(item){ return !item ? '' : (item.kind === 'clip' ? 'clip:'+ite
    this just silently never becomes ready and play()/recordVideo() no-op on
    it (no error surfaced, same tolerance as a clip that hasn't been dropped
    in yet). */
+// "Cinematic Ambient" by Kulakovka, Pixabay Content License: https://pixabay.com/music/pulses-cinematic-ambient-274889/
 const BG_AUDIO_SRC = 'assets/audio/bg.mp3';
 const bgAudio = new Audio();
 bgAudio.loop = true;
