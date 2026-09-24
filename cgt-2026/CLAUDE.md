@@ -37,7 +37,7 @@ Everything lives in one file. Open it in a text editor and you'll find:
    works too for plain display but the canvas export path taints on local
    files, so always serve for anything beyond a quick look.
 3. `const CLIPS = [...]` near the top of the main script — video clip config,
-   including a `src:` path for each clip (e.g. `assets/video/river-waves.mp4`).
+   including a `src:` path for each clip (e.g. `assets/video/pushups.mp4`).
    The clip files themselves are **not** embedded in the HTML — they're
    separate `.mp4` files committed under `cgt-2026/assets/video/` and
    auto-load on page load. The manual "Clips" row in the control bar still
@@ -105,11 +105,20 @@ Key functions:
 Fine to change:
 
 - Captions: `"cap"` and `"sub"` in the `pix` block. Keep `cap` under ~38
-  characters or it auto-shrinks; `sub` fits about 58.
+  characters or it auto-shrinks. `sub` isn't drawn in this file; the 3D
+  slideshow shows it in 16:9 only.
 - Clip trims, placement and captions: the `CLIPS` array. `rate: 0.5` if a
   slow-motion file plays at full speed. `crop:'square'` centre-crops.
+- Replacing a photo with an edited version: overwrite the file in
+  `assets/img/` under the same name and update `w`/`h` if they changed.
+  Re-encode it first so no GPS/EXIF ships. `sips` keeps metadata, so use
+  ImageIO: a small Swift script that does `CGImageSourceCreateImageAtIndex` →
+  `CGImageDestinationAddImage` with only a quality option (0.82) writes
+  pixels and colour profile only. Check the source's orientation is 1
+  first, or the output will be rotated.
 - Day labels: `days` in the `trek` block.
-- Run length: the dropdown (120/150/180 s). Holds shrink automatically as more
+- Run length: the dropdown (90/120/150/180 s; same options in the 3D
+  slideshow). Holds shrink automatically as more
   items are added.
 
 Don't:
@@ -130,8 +139,9 @@ Don't:
 
 ## Clips
 
-Four slots — `river-waves.mp4`, `the-drive.mp4`, `pushups.mp4`,
-`snow-throw.mp4` — committed under `cgt-2026/assets/video/` and referenced by
+Four clips, all on the route — `kya-tso-water.mp4`, `pushups.mp4`,
+`snow-throw.mp4`, `melt-stream.mp4` — committed under `cgt-2026/assets/video/`
+and referenced by
 `src:` in `CLIPS` as `assets/video/<file>.mp4`. They auto-load on page load;
 no manual step needed for a normal run. Each was prepared with ffmpeg before committing: re-encoded to
 H.264 (iPhone HEVC `.mov` may not decode in Chrome's canvas pipeline), muted
@@ -141,9 +151,28 @@ H.264 (iPhone HEVC `.mov` may not decode in Chrome's canvas pipeline), muted
 ffmpeg -i in.mov -map_metadata -1 -c:v libx264 -crf 20 -pix_fmt yuv420p -an out.mp4
 ```
 
-`the-drive.mp4` also had to be trimmed to just its used window (`-ss`/`-to`)
-to fit under GitHub's 100 MB file limit. If you replace a clip with a longer
-one, check the committed file size and, if you trim it, update that clip's
+`kya-tso-water.mp4` and `melt-stream.mp4` are iPhone Live Photo videos that
+replaced the stills `photo-24-route-1075.jpg` and `photo-27-route-1124.jpg`.
+ffmpeg isn't installed on this Mac, so they were converted with macOS's
+built-in `avconvert`. Its default metadata filter strips GPS, and the result
+was checked with `mdls`:
+
+```
+avconvert -s IMG_0212.mov -p PresetHighestQuality -o assets/video/kya-tso-water.mp4
+```
+
+That keeps the audio track (harmless, clips always play muted). A clip that
+replaces a photo carries the photo's `date`/`time` in its `CLIPS` entry, so
+its caption shows them instead of "CLIP". Never commit the raw `.mov`/`.HEIC`
+exports: they contain GPS.
+
+Testing note: Claude-in-Chrome's automation tab reports `document.hidden`,
+and Chrome won't load `<video>` in hidden tabs. Clips never become ready
+there and silently drop out of the schedule. Check clip playback in a
+foreground tab.
+
+Keep committed clips under GitHub's 100 MB file limit by trimming to just
+the used window (`-ss`/`-to`). If you replace a clip with a longer one, check the committed file size and, if you trim it, update that clip's
 `start`/`end` in `CLIPS` to match — trimming resets the output file's internal
 clock to 0, so an untrimmed offset will point at the wrong frames.
 
@@ -299,6 +328,10 @@ top/bottom, and the route progress bar runs vertically down the centre seam.
 Crop maths must read the Cesium canvas's own `width`/`height`, not `W`/`H`,
 because devicePixelRatio can make them differ.
 
+**Cover photo** is `COVER_PHOTO`, currently `assets/img/photo-24-route-1075.jpg`.
+That image isn't in the `pix` data (its slideshow spot became the Kya Tso
+clip), so `loadPix()` loads it separately. Don't delete it as unused.
+
 **Cover slide** (`drawCoverSlide`, first `COVER_DUR` seconds, no fade-in):
 the map half shows the whole route. `drawSchematicRouteMap` draws it instantly
 on a dark background, and `coverMapPoller` (run from `boot()`'s tiles-loaded
@@ -315,7 +348,14 @@ profile line carries a dark shadow for legibility over bright terrain.
 
 **Map labels** (day chip, profile header, Google credit) sit on a
 semi-transparent black rounded background (`labelPill()`), not a drop shadow
-or text outline. Use the same helper for any new text drawn over the map. It replaces the
+or text outline. Use the same helper for any new text drawn over the map.
+Photo captions (`captionBar()`) use the same background per line
+(`captionPill()`), with no gradient scrim behind them. When the box is too
+narrow for caption and date side by side (layout B's card), the date moves
+to its own line under the caption. The second caption line (`sub` in the
+`pix` data) only shows in 16:9, and never in B's card. In 9:16 and 4:5,
+Split's caption sits lower to use the freed space. The photos-only file
+doesn't draw `sub` at all, but the data is kept identical across both files. It replaces the
 distance/elevation readouts that used to sit under the caption. The
 "route approximate" disclaimer moved from under the caption to the end of the
 Google credit line (`creditLine()`), so it still shows on every frame in
