@@ -235,6 +235,12 @@ tab-recording fallback is the way out.
 dropdown (`LAYOUT` in the script, `composeLayout()`):
 - **A · Cut to photo** — full-frame 3D; at each stop the photo/clip
   cross-fades in over a darkened backdrop, camera keeps drifting underneath.
+  Media shows only while the walk is stopped for it (the pre-walk slideshow,
+  each route item's hold, the closing photo) and fades out while the route
+  plays; see `cutSpans()`/`cutPhotoAlpha()`. The photo box shrinks to each
+  item's own aspect, vertically centred (`tightBox()`), so landscape shots
+  leave the terrain visible above and below them instead of a blurred
+  letterbox fill. Layouts B and C still use the fixed box plus blur fill.
 - **B · Card over 3D** — full-frame 3D stays visible; a floating card
   (~470px, top-left) holds the current photo/clip, caption and a stat row
   (altitude/distance/climbed/high point).
@@ -300,6 +306,28 @@ interval) swaps in a top-down Cesium capture once `tileset.tilesLoaded` is
 true. The result is cached per size in `COVER_MAP_CACHE`. Don't move the
 Cesium camera for this capture every frame, because that fights `renderAt`'s
 own camera and stops tiles from ever loading.
+
+**Elevation profile** (`elevProfile(rect, alpha)`): drawn straight over the
+map with no panel. It shows the whole trek as a silhouette (dark translucent
+fill for contrast), the walked part filled in day colours, a head marker,
+and a header with distance walked / total km and the live elevation. The
+profile line carries a dark shadow for legibility over bright terrain.
+
+**Map labels** (day chip, profile header, Google credit) sit on a
+semi-transparent black rounded background (`labelPill()`), not a drop shadow
+or text outline. Use the same helper for any new text drawn over the map. It replaces the
+distance/elevation readouts that used to sit under the caption. The
+"route approximate" disclaimer moved from under the caption to the end of the
+Google credit line (`creditLine()`), so it still shows on every frame in
+every layout. Keep it there. The "Google ·" prefix is only added when the
+tileset's own credit text doesn't already say Google. The music credit is
+deliberately not drawn in the video (it took too much room); it goes in post
+captions instead (see the talking points below). Each layout passes its own
+rect, always over map and clear of photos and the 16:9 centre progress bar.
+A: above the caption, left half in 16:9, shown only while the route plays.
+B: under the card if there's room (9:16), else beside it (4:5), or the right
+half (16:9). C: bottom of the map half. Hidden during the pre-walk slideshow
+(`profileAlpha`).
 
 **Audio.** `assets/audio/bg.mp3` plays with Play and is mixed into the
 recorded video. It is "Cinematic Ambient" by Kulakovka
